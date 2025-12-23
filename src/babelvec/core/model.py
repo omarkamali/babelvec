@@ -286,12 +286,29 @@ class BabelVec:
 
         # Try to infer language from filename
         lang = path.stem.split("_")[0] if "_" in path.stem else "unknown"
+        
+        # Load metadata if available
+        meta_path = path.with_suffix(".meta.json")
+        metadata = {}
+        if meta_path.exists():
+            with open(meta_path, "r") as f:
+                metadata = json.load(f)
+                lang = metadata.get("lang", lang)
 
-        return cls(
+        model = cls(
             fasttext_model=ft,
             lang=lang,
             dim=ft.dim,
+            max_seq_len=metadata.get("max_seq_len", 512),
         )
+        
+        # Load projection matrix if available
+        proj_path = path.with_suffix(".projection.npy")
+        if proj_path.exists():
+            projection = np.load(proj_path)
+            model.set_projection(projection)
+        
+        return model
 
     @classmethod
     def _load_babelvec(cls, path: Path) -> "BabelVec":
@@ -332,9 +349,23 @@ class BabelVec:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         if path.suffix == ".bin":
-            # Save just FastText model
+            # Save FastText model
             if self._ft is not None:
                 self._ft.save(path)
+            # Also save projection matrix if present
+            if self._projection is not None:
+                proj_path = path.with_suffix(".projection.npy")
+                np.save(proj_path, self._projection)
+            # Save metadata
+            meta_path = path.with_suffix(".meta.json")
+            meta = {
+                "lang": self.lang,
+                "dim": self.dim,
+                "max_seq_len": self.max_seq_len,
+                "is_aligned": self.is_aligned,
+            }
+            with open(meta_path, "w") as f:
+                json.dump(meta, f)
         else:
             # Save full BabelVec format
             self._save_babelvec(path, save_fasttext)

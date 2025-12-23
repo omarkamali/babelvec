@@ -8,10 +8,9 @@
 
 ## Features
 
-- **Position-Aware Embeddings**: Word order matters! Uses RoPE, sinusoidal, or decay positional encoding
-- **Cross-Lingual Alignment**: Ensemble alignment (Procrustes + InfoNCE) for multilingual compatibility
+- **Cross-Lingual Alignment**: Procrustes alignment for multilingual compatibility
+- **Position-Aware Embeddings**: Optional positional encoding (RoPE, sinusoidal, decay)
 - **FastText Foundation**: Handles OOV words through subword information
-- **Multiple Training Modes**: Monolingual, multilingual, or post-hoc alignment
 
 ## Installation
 
@@ -35,13 +34,13 @@ model = BabelVec.load('path/to/model.bin')
 # Get word vector
 vec = model.get_word_vector("hello")
 
-# Position-aware sentence embedding (order matters)
+# Position-aware sentence embedding
 vec1 = model.get_sentence_vector("The dog bites the man", method='rope')
 vec2 = model.get_sentence_vector("The man bites the dog", method='rope')
-# vec1 != vec2 because word order is different!
+# vec1 != vec2 because word order is encoded
 
-# Standard averaging (order-agnostic)
-vec_avg = model.get_sentence_vector("The dog bites the man", method='average')
+# Simple averaging (no position encoding)
+vec = model.get_sentence_vector("Hello world", method='average')
 ```
 
 ## Training
@@ -65,11 +64,11 @@ model.save('en_300d.bin')
 ```python
 from babelvec.training import train_multilingual
 
-model = train_multilingual(
-    languages=['en', 'fr', 'de'],
-    corpus_paths={'en': 'en.txt', 'fr': 'fr.txt', 'de': 'de.txt'},
-    dim=300,
-    alignment='ensemble'
+models = train_multilingual(
+    languages=['en', 'ar'],
+    corpus_paths={'en': 'en.txt', 'ar': 'ar.txt'},
+    parallel_data={('en', 'ar'): parallel_pairs},
+    alignment='procrustes'
 )
 ```
 
@@ -79,20 +78,54 @@ model = train_multilingual(
 from babelvec.training import align_models
 
 aligned = align_models(
-    models={'en': model_en, 'fr': model_fr},
-    method='ensemble',
-    parallel_data=parallel_sentences
+    models={'en': model_en, 'ar': model_ar},
+    parallel_data={('en', 'ar'): parallel_pairs},
+    method='procrustes'
 )
 ```
 
-## Positional Encoding Methods
+## Model Save/Load (v0.1.3+)
 
-| Method | Description | Use Case |
-|--------|-------------|----------|
-| `average` | Simple averaging (no position) | Bag-of-words tasks |
-| `rope` | Rotary Position Embedding | Best for semantic similarity |
-| `sinusoidal` | Transformer-style positional | General purpose |
-| `decay` | Exponential position decay | Emphasis on early words |
+Models save projection matrices alongside the FastText binary:
+
+```python
+# Save model
+model.save('model.bin')
+# Creates: model.bin, model.projection.npy (if aligned), model.meta.json
+
+# Load model - projection is automatically restored
+model = BabelVec.load('model.bin')
+print(model.is_aligned)  # True if projection was loaded
+```
+
+## Encoding Methods
+
+| Method | Description |
+|--------|-------------|
+| `rope` | Rotary Position Embedding |
+| `decay` | Exponential position decay |
+| `sinusoidal` | Transformer-style positional encoding |
+| `average` | Simple averaging (no position encoding) |
+
+## Evaluation
+
+```python
+from babelvec.evaluation import cross_lingual_retrieval
+
+metrics = cross_lingual_retrieval(
+    model_src=model_en,
+    model_tgt=model_ar,
+    parallel_sentences=test_pairs,
+    method='rope'
+)
+print(f"Recall@1: {metrics['recall@1']:.3f}")
+```
+
+## Examples
+
+See the `examples/` directory:
+
+- `01_basic_usage.py` - Getting started
 
 ## Citation
 
