@@ -59,6 +59,23 @@ model = train_monolingual(
 model.save('en_300d.bin')
 ```
 
+### Parallel Multi-Language Training (v0.1.4+)
+
+Train multiple languages simultaneously for faster training on multi-core servers:
+
+```python
+from babelvec.training import train_multiple_languages, get_cpu_count
+
+# Auto-detects CPU cores
+print(f"Using {get_cpu_count()} cores")
+
+models = train_multiple_languages(
+    languages={'en': 'en_corpus.txt', 'ar': 'ar_corpus.txt'},
+    parallel=True,      # Train languages simultaneously
+    max_workers=2,      # Number of parallel training jobs
+)
+```
+
 ### Multilingual Training with Alignment
 
 ```python

@@ -5,6 +5,16 @@ All notable changes to BabelVec will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2024-12-23
+
+### Added
+- **Parallel Training**: New `train_multiple_languages()` function for training multiple languages simultaneously
+- **FastText Parameters**: Exposed `loss` and `bucket` parameters for fine-tuning
+
+### Changed
+- `TrainingConfig.thread` now defaults to auto-detected CPU count instead of hardcoded 4
+- Training now prints thread count for visibility
+
 ## [0.1.3] - 2024-12-23
 
 ### Fixed

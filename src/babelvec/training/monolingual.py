@@ -1,11 +1,13 @@
 """Monolingual training for BabelVec."""
 
+import os
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, List, Optional, Union
 
 from babelvec.core.model import BabelVec
 from babelvec.core.fasttext_wrapper import FastTextWrapper
-from babelvec.training.config import TrainingConfig, default_config
+from babelvec.training.config import TrainingConfig, default_config, get_cpu_count
 
 
 def train_monolingual(
@@ -62,6 +64,7 @@ def train_monolingual(
                 "lr": config.lr,
                 "min_count": config.min_count,
                 "model_type": config.model_type,
+                "thread": config.thread,
             },
             "corpus_path": str(corpus_path),
         },
@@ -72,6 +75,105 @@ def train_monolingual(
         model.save(output_path)
 
     return model
+
+
+def _train_single_language(args: tuple) -> tuple:
+    """Helper for parallel training."""
+    lang, corpus_path, config, output_path = args
+    model = train_monolingual(lang, corpus_path, config, output_path)
+    return lang, model
+
+
+def train_multiple_languages(
+    languages: Dict[str, Union[str, Path]],
+    config: Optional[TrainingConfig] = None,
+    output_dir: Optional[Union[str, Path]] = None,
+    parallel: bool = True,
+    max_workers: int = None,
+) -> Dict[str, BabelVec]:
+    """
+    Train multiple monolingual models, optionally in parallel.
+    
+    For servers with many cores, this trains languages simultaneously,
+    with each language using a portion of available threads.
+
+    Args:
+        languages: Dict mapping language code to corpus path
+        config: Training configuration
+        output_dir: Directory to save models
+        parallel: Whether to train languages in parallel
+        max_workers: Max parallel training jobs (default: min(len(languages), 2))
+
+    Returns:
+        Dict mapping language code to trained model
+    
+    Example:
+        >>> models = train_multiple_languages({
+        ...     'en': 'en_corpus.txt',
+        ...     'ar': 'ar_corpus.txt',
+        ... }, parallel=True)
+    """
+    if config is None:
+        config = default_config()
+    
+    if output_dir:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+    
+    n_languages = len(languages)
+    
+    if parallel and n_languages > 1:
+        # Determine parallelism
+        if max_workers is None:
+            max_workers = min(n_languages, 2)  # Train at most 2 languages in parallel
+        
+        # Divide threads among parallel jobs
+        total_threads = config.thread
+        threads_per_job = max(1, total_threads // max_workers)
+        
+        # Create per-language configs with reduced thread count
+        job_config = TrainingConfig(
+            dim=config.dim,
+            epochs=config.epochs,
+            lr=config.lr,
+            min_count=config.min_count,
+            word_ngrams=config.word_ngrams,
+            minn=config.minn,
+            maxn=config.maxn,
+            ws=config.ws,
+            neg=config.neg,
+            model_type=config.model_type,
+            loss=config.loss,
+            bucket=config.bucket,
+            thread=threads_per_job,
+            verbose=config.verbose,
+            max_seq_len=config.max_seq_len,
+        )
+        
+        print(f"Training {n_languages} languages in parallel ({max_workers} workers, {threads_per_job} threads each)")
+        
+        # Prepare arguments
+        args_list = []
+        for lang, corpus_path in languages.items():
+            output_path = output_dir / f"{lang}_model.bin" if output_dir else None
+            args_list.append((lang, corpus_path, job_config, output_path))
+        
+        # Train in parallel using threads (FastText releases GIL during training)
+        models = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = executor.map(_train_single_language, args_list)
+            for lang, model in results:
+                models[lang] = model
+        
+        return models
+    
+    else:
+        # Sequential training
+        models = {}
+        for lang, corpus_path in languages.items():
+            output_path = output_dir / f"{lang}_model.bin" if output_dir else None
+            models[lang] = train_monolingual(lang, corpus_path, config, output_path)
+        return models
 
 
 def train_from_texts(

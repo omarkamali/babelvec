@@ -1,7 +1,18 @@
 """Training configuration for BabelVec."""
 
+import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
+
+
+def get_cpu_count() -> int:
+    """Get available CPU count, preferring physical cores."""
+    try:
+        # Try to get physical cores (better for FastText)
+        import psutil
+        return psutil.cpu_count(logical=False) or os.cpu_count() or 4
+    except ImportError:
+        return os.cpu_count() or 4
 
 
 @dataclass
@@ -14,6 +25,7 @@ class TrainingConfig:
     word_ngrams: int = 1
     minn: int = 3
     maxn: int = 6
+    bucket: int = 2000000  # Hash buckets for subwords
 
     # Training parameters
     epochs: int = 5
@@ -21,9 +33,10 @@ class TrainingConfig:
     ws: int = 5  # Window size
     neg: int = 5  # Negative samples
     model_type: str = "skipgram"  # 'skipgram' or 'cbow'
+    loss: str = "ns"  # 'ns' (negative sampling), 'hs' (hierarchical softmax), 'softmax'
 
-    # System parameters
-    thread: int = 4
+    # System parameters - auto-detect by default
+    thread: int = field(default_factory=get_cpu_count)
     verbose: int = 1
 
     # Alignment parameters
@@ -50,6 +63,8 @@ class TrainingConfig:
             "ws": self.ws,
             "neg": self.neg,
             "model_type": self.model_type,
+            "loss": self.loss,
+            "bucket": self.bucket,
             "thread": self.thread,
             "verbose": self.verbose,
         }
@@ -100,4 +115,22 @@ def quality_config() -> TrainingConfig:
         maxn=6,
         ws=5,
         neg=10,
+    )
+
+
+def max_performance_config() -> TrainingConfig:
+    """Get maximum performance configuration for large servers."""
+    cpu_count = get_cpu_count()
+    return TrainingConfig(
+        dim=300,
+        epochs=5,
+        min_count=5,
+        minn=3,
+        maxn=6,
+        ws=5,
+        neg=10,
+        thread=cpu_count,
+        bucket=2000000,
+        loss="ns",
+        verbose=2,
     )

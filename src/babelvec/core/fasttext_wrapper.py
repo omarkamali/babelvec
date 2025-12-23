@@ -192,7 +192,9 @@ class FastTextWrapper:
         ws: int = 5,
         neg: int = 5,
         model_type: str = "skipgram",
-        thread: int = 4,
+        loss: str = "ns",
+        bucket: int = 2000000,
+        thread: int = None,
         verbose: int = 1,
     ) -> "FastTextWrapper":
         """
@@ -210,7 +212,9 @@ class FastTextWrapper:
             ws: Context window size
             neg: Number of negative samples
             model_type: 'skipgram' or 'cbow'
-            thread: Number of threads
+            loss: Loss function ('ns', 'hs', 'softmax')
+            bucket: Number of hash buckets for subwords
+            thread: Number of threads (None = auto-detect)
             verbose: Verbosity level
 
         Returns:
@@ -222,6 +226,13 @@ class FastTextWrapper:
         corpus_path = Path(corpus_path)
         if not corpus_path.exists():
             raise FileNotFoundError(f"Corpus not found: {corpus_path}")
+
+        # Auto-detect thread count if not specified
+        if thread is None:
+            thread = os.cpu_count() or 4
+        
+        if verbose >= 1:
+            print(f"Training FastText with {thread} threads...")
 
         model = fasttext.train_unsupervised(
             str(corpus_path),
@@ -235,6 +246,8 @@ class FastTextWrapper:
             maxn=maxn,
             ws=ws,
             neg=neg,
+            loss=loss,
+            bucket=bucket,
             thread=thread,
             verbose=verbose,
         )
