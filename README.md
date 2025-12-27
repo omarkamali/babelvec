@@ -138,6 +138,31 @@ metrics = cross_lingual_retrieval(
 print(f"Recall@1: {metrics['recall@1']:.3f}")
 ```
 
+## Language Families for Joint Training
+
+BabelVec includes a curated family assignment system for 355 Wikipedia languages, optimized for joint multilingual training.
+
+```python
+from babelvec.families import get_family_key, get_family_languages, get_training_groups
+
+# Get family for a language
+get_family_key("ary")  # -> "arabic"
+get_family_key("fr")   # -> "romance_galloitalic"
+
+# Get all languages in a family
+get_family_languages("arabic")  # -> ["ar", "ary", "arz"]
+
+# Create training groups (hybrid strategy)
+groups = get_training_groups(
+    languages=["en", "ar", "ary", "arz"],
+    article_counts={"en": 6000000, "ar": 840000, "ary": 17000, "arz": 40000},
+    low_resource_threshold=50000
+)
+# -> {"separate": ["en", "ar"], "joint": {"arabic": ["ary", "arz"]}}
+```
+
+Joint training dramatically improves low-resource languages (+200-600% for Arabic dialects) while high-resource languages should be trained separately.
+
 ## Examples
 
 See the `examples/` directory:

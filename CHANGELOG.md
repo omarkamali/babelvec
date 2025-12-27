@@ -5,6 +5,13 @@ All notable changes to BabelVec will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-12-27
+
+### Added
+- **Language Family Assignment System**: 100 hardcoded families covering all 355 Wikipedia languages
+- Family grouping API: `get_family_key()`, `get_family_languages()`, `assign_families()`, `get_training_groups()`
+- Hybrid training strategy support for joint vs separate model training
+
 ## [0.1.4] - 2024-12-23
 
 ### Added

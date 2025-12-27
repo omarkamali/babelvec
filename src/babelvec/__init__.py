@@ -2,7 +2,10 @@
 BabelVec: Position-aware, cross-lingually aligned word embeddings built on FastText.
 """
 
-from babelvec.version import __version__
+from importlib.metadata import version
+
+__version__ = version("babelvec")
+
 from babelvec.core.model import BabelVec
 from babelvec.core.positional_encoding import (
     PositionalEncoding,
@@ -11,6 +14,14 @@ from babelvec.core.positional_encoding import (
     DecayEncoding,
 )
 from babelvec.core.sentence_encoder import SentenceEncoder
+from babelvec.families import (
+    get_family_key,
+    get_family_languages,
+    assign_families,
+    get_training_groups,
+    HARDCODED_FAMILIES,
+    WIKIPEDIA_LANGUAGES,
+)
 
 __all__ = [
     "__version__",
@@ -20,4 +31,11 @@ __all__ = [
     "SinusoidalEncoding",
     "DecayEncoding",
     "SentenceEncoder",
+    # Family assignment
+    "get_family_key",
+    "get_family_languages",
+    "assign_families",
+    "get_training_groups",
+    "HARDCODED_FAMILIES",
+    "WIKIPEDIA_LANGUAGES",
 ]
