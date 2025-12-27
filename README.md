@@ -2,9 +2,10 @@
 
 **Position-aware, cross-lingually aligned word embeddings built on FastText.**
 
+[![DOI](https://zenodo.org/badge/1120715892.svg)](https://doi.org/10.5281/zenodo.18065206)
 [![PyPI version](https://badge.fury.io/py/babelvec.svg)](https://badge.fury.io/py/babelvec)
 [![License](https://img.shields.io/badge/licence-MIT-green)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
 ## Features
 
@@ -172,9 +173,11 @@ See the `examples/` directory:
 ## Citation
 
 ```bibtex
-@software{babelvec2025,
+@misc{babelvec2025,
   title = {BabelVec: Position-Aware Cross-Lingual Word Embeddings},
   author = {Kamali, Omar},
+  doi = {10.5281/zenodo.18065206},
+  publisher = {Zenodo},
   year = {2025},
   url = {https://github.com/omarkamali/babelvec}
 }
