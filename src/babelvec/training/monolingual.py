@@ -15,6 +15,7 @@ def train_monolingual(
     corpus_path: Union[str, Path],
     config: Optional[TrainingConfig] = None,
     output_path: Optional[Union[str, Path]] = None,
+    threads: Optional[int] = None,
     **kwargs,
 ) -> BabelVec:
     """
@@ -25,6 +26,7 @@ def train_monolingual(
         corpus_path: Path to training corpus (one sentence per line)
         config: Training configuration. If None, uses defaults.
         output_path: Optional path to save the model
+        threads: Number of threads for FastText training
         **kwargs: Override config parameters
 
     Returns:
@@ -37,6 +39,10 @@ def train_monolingual(
     # Get config
     if config is None:
         config = default_config()
+
+    # Apply threads override
+    if threads is not None:
+        config.threads = threads
 
     # Apply overrides
     for key, value in kwargs.items():
@@ -64,7 +70,7 @@ def train_monolingual(
                 "lr": config.lr,
                 "min_count": config.min_count,
                 "model_type": config.model_type,
-                "thread": config.thread,
+                "threads": config.threads,
             },
             "corpus_path": str(corpus_path),
         },
@@ -128,7 +134,7 @@ def train_multiple_languages(
             max_workers = min(n_languages, 2)  # Train at most 2 languages in parallel
         
         # Divide threads among parallel jobs
-        total_threads = config.thread
+        total_threads = config.threads
         threads_per_job = max(1, total_threads // max_workers)
         
         # Create per-language configs with reduced thread count
@@ -145,7 +151,7 @@ def train_multiple_languages(
             model_type=config.model_type,
             loss=config.loss,
             bucket=config.bucket,
-            thread=threads_per_job,
+            threads=threads_per_job,
             verbose=config.verbose,
             max_seq_len=config.max_seq_len,
         )

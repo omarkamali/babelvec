@@ -5,6 +5,14 @@ All notable changes to BabelVec will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-01-03
+
+### Added
+- **Thread Control**: Exposed `threads` parameter in `train_monolingual` and `train_multilingual` to manually specify FastText thread count.
+
+### Changed
+- Renamed `TrainingConfig.thread` to `TrainingConfig.threads` for consistency with other parameters.
+
 ## [0.1.5] - 2025-12-27
 
 ### Added

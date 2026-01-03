@@ -75,7 +75,7 @@ def cmd_train(args):
         dim=args.dim,
         epochs=args.epochs,
         min_count=args.min_count,
-        thread=args.threads,
+        threads=args.threads,
     )
 
     print(f"Training {args.lang} model...")

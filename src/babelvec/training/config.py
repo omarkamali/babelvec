@@ -36,7 +36,7 @@ class TrainingConfig:
     loss: str = "ns"  # 'ns' (negative sampling), 'hs' (hierarchical softmax), 'softmax'
 
     # System parameters - auto-detect by default
-    thread: int = field(default_factory=get_cpu_count)
+    threads: int = field(default_factory=get_cpu_count)
     verbose: int = 1
 
     # Alignment parameters
@@ -65,7 +65,7 @@ class TrainingConfig:
             "model_type": self.model_type,
             "loss": self.loss,
             "bucket": self.bucket,
-            "thread": self.thread,
+            "threads": self.threads,
             "verbose": self.verbose,
         }
 

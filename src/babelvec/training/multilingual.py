@@ -21,6 +21,7 @@ def train_multilingual(
     alignment: str = "ensemble",
     reference_lang: Optional[str] = None,
     output_dir: Optional[Union[str, Path]] = None,
+    threads: Optional[int] = None,
     **kwargs,
 ) -> Dict[str, BabelVec]:
     """
@@ -35,6 +36,7 @@ def train_multilingual(
         alignment: Alignment method ('procrustes', 'infonce', 'ensemble', 'none')
         reference_lang: Reference language for alignment
         output_dir: Optional directory to save models
+        threads: Number of threads for FastText training
         **kwargs: Override config parameters
 
     Returns:
@@ -50,6 +52,10 @@ def train_multilingual(
     """
     if config is None:
         config = default_config()
+
+    # Apply threads override
+    if threads is not None:
+        config.threads = threads
 
     # Apply overrides
     for key, value in kwargs.items():

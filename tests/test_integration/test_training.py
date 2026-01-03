@@ -44,7 +44,7 @@ def fast_config():
         min_count=1,  # Include all words
         minn=2,
         maxn=4,
-        thread=2,
+        threads=2,
         verbose=0,
     )
 

@@ -55,7 +55,8 @@ model = train_monolingual(
     lang='en',
     corpus_path='corpus.txt',
     dim=300,
-    epochs=5
+    epochs=5,
+    threads=8  # Optional: specify number of threads
 )
 model.save('en_300d.bin')
 ```
@@ -86,7 +87,8 @@ models = train_multilingual(
     languages=['en', 'ar'],
     corpus_paths={'en': 'en.txt', 'ar': 'ar.txt'},
     parallel_data={('en', 'ar'): parallel_pairs},
-    alignment='procrustes'
+    alignment='procrustes',
+    threads=8  # Optional: specify number of threads
 )
 ```
 
