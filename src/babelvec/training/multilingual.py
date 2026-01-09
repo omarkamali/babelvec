@@ -59,6 +59,11 @@ def train_multilingual(
 
     # Apply overrides
     for key, value in kwargs.items():
+        # Handle 'thread' as alias for 'threads'
+        if key == "thread":
+            config.threads = value
+            continue
+            
         if hasattr(config, key):
             setattr(config, key, value)
 

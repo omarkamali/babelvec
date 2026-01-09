@@ -100,7 +100,7 @@ def fast_config() -> TrainingConfig:
         dim=100,
         epochs=1,
         min_count=1,
-        thread=2,
+        threads=2,
         verbose=0,
     )
 
@@ -129,7 +129,7 @@ def max_performance_config() -> TrainingConfig:
         maxn=6,
         ws=5,
         neg=10,
-        thread=cpu_count,
+        threads=cpu_count,
         bucket=2000000,
         loss="ns",
         verbose=2,

@@ -46,6 +46,11 @@ def train_monolingual(
 
     # Apply overrides
     for key, value in kwargs.items():
+        # Handle 'thread' as alias for 'threads'
+        if key == "thread":
+            config.threads = value
+            continue
+            
         if hasattr(config, key):
             setattr(config, key, value)
 
@@ -138,23 +143,8 @@ def train_multiple_languages(
         threads_per_job = max(1, total_threads // max_workers)
         
         # Create per-language configs with reduced thread count
-        job_config = TrainingConfig(
-            dim=config.dim,
-            epochs=config.epochs,
-            lr=config.lr,
-            min_count=config.min_count,
-            word_ngrams=config.word_ngrams,
-            minn=config.minn,
-            maxn=config.maxn,
-            ws=config.ws,
-            neg=config.neg,
-            model_type=config.model_type,
-            loss=config.loss,
-            bucket=config.bucket,
-            threads=threads_per_job,
-            verbose=config.verbose,
-            max_seq_len=config.max_seq_len,
-        )
+        from dataclasses import replace
+        job_config = replace(config, threads=threads_per_job)
         
         print(f"Training {n_languages} languages in parallel ({max_workers} workers, {threads_per_job} threads each)")
         
